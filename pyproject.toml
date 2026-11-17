@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stochastic-music"
+version = "0.1.0"
+description = "Simulate stochastic processes and hear them as music: one path, one voice."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "François-Xavier Coste" }]
+keywords = ["stochastic processes", "generative music", "midi", "sonification", "quantitative finance"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Other Audience",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "mido>=1.3",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.7"]
+app = ["streamlit>=1.46", "matplotlib>=3.7"]
+dev = ["pytest>=7", "ruff>=0.4", "streamlit>=1.46", "matplotlib>=3.7"]
+
+[project.scripts]
+stochastic-music = "stochastic_music.launch:main"
+
+[project.urls]
+Repository = "https://github.com/f-x-cst/stochastic-music"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

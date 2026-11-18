@@ -58,6 +58,7 @@ def process_controls(prefix: str, label: str, default: str) -> sm.PathSimulator:
         index=keys.index(default),
         format_func=lambda k: sm.PROCESSES[k].label,
         key=f"{prefix}_process",
+        filter_mode=None,
     )
     info = sm.PROCESSES[key]
 
@@ -99,16 +100,19 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
             "- Hawkes: Rhythm follows a Hawkes process\n"
             "- Driven by a process: Another stochastic process dictates note lengths"
         ),
+        filter_mode=None,
     )
 
     if kind == "Fixed grid":
         picker, _ = st.columns([3, 2])
-        step = picker.selectbox("Step", list(STEPS), index=1, key=f"{prefix}_step")
+        step = picker.selectbox(
+            "Step", list(STEPS), index=1, key=f"{prefix}_step", filter_mode=None
+        )
         clock = sm.UniformClock(STEPS[step])
     elif kind == "Poisson (random)":
         left, right = st.columns(2)
         rate = left.slider("Notes per beat", 0.25, 4.0, 2.0, 0.05, key=f"{prefix}_rate")
-        grid = right.selectbox("Snap to", list(GRIDS), key=f"{prefix}_pgrid")
+        grid = right.selectbox("Snap to", list(GRIDS), key=f"{prefix}_pgrid", filter_mode=None)
         clock = sm.PoissonClock(rate, GRIDS[grid])
     elif kind == "Hawkes (bursts)":
         left, right = st.columns(2)
@@ -131,7 +135,7 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
             key=f"{prefix}_decay",
             help="How fast the excitement fades, per beat. Higher = tighter bursts.",
         )
-        grid = right.selectbox("Snap to", list(GRIDS), key=f"{prefix}_hgrid")
+        grid = right.selectbox("Snap to", list(GRIDS), key=f"{prefix}_hgrid", filter_mode=None)
         clock = sm.HawkesClock(base, excitation, decay, GRIDS[grid])
     else:
         lengths = st.multiselect(
@@ -139,6 +143,7 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
             [0.25, 0.5, 1.0, 2.0, 4.0],
             default=[0.25, 0.5, 1.0, 2.0],
             key=f"{prefix}_lengths",
+            filter_mode=None,
         )
         driver = process_controls(f"{prefix}_rhythm", "Rhythm process", "ou")
         clock = sm.ProcessClock(driver, lengths or [1.0])
@@ -158,6 +163,7 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
         list(NOTE_CAPS),
         key=f"{prefix}_cap",
         help="Stops a note that precedes a long silence from droning.",
+        filter_mode=None,
     )
     return clock, gate, NOTE_CAPS[cap]
 
@@ -190,12 +196,14 @@ def voice_controls(index: int, scale: str, root: int) -> sm.VoiceSpec:
             sm.WAVEFORMS,
             key=f"{prefix}_waveform",
             help="Timbre of the built-in player.",
+            filter_mode=None,
         )
         instrument = right.selectbox(
             "MIDI instrument",
             list(GM_PROGRAMS),
             key=f"{prefix}_program",
             help="Stored in the MIDI file, for use in a DAW or a MIDI player.",
+            filter_mode=None,
         )
 
     return sm.VoiceSpec(
@@ -272,7 +280,10 @@ def main() -> None:
 
         st.header("Key", anchor=False)
         scale = st.selectbox(
-            "Scale / mode", list(sm.SCALES), index=list(sm.SCALES).index(CHROMATIC)
+            "Scale / mode",
+            list(sm.SCALES),
+            index=list(sm.SCALES).index(CHROMATIC),
+            filter_mode=None,
         )
         root = 0
         if scale != CHROMATIC:
@@ -280,6 +291,7 @@ def main() -> None:
                 "Root note",
                 range(12),
                 format_func=lambda pitch_class: sm.ROOT_NOTE_NAMES[pitch_class],
+                filter_mode=None,
             )
 
         st.header("Voices", anchor=False)

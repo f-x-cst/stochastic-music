@@ -16,8 +16,8 @@ ones.
 
 ## Features
 
-- **9 processes**: Wiener, Brownian motion with drift, geometric Brownian motion,
-  Ornstein-Uhlenbeck, CIR, Heston (standard or rough volatility), SABR, Merton
+- **11 processes**: Wiener, Brownian motion with drift, fractional Brownian motion,
+  Brownian bridge, geometric Brownian motion, Ornstein-Uhlenbeck, CIR, Heston (standard or rough volatility), SABR, Merton
   jump-diffusion and Variance Gamma.
 - **Several voices at once**, each with its own process, correlated through their
   driving shocks: voices that move together, or in contrary motion.
@@ -140,6 +140,8 @@ correlated than their shocks.
 |---|---|---|
 | Wiener | dX = σ dW | A free random walk |
 | Brownian motion | dX = μ dt + σ dW | A random walk that climbs or falls |
+| Fractional Brownian motion | Gaussian, Cov ∝ t^2H + s^2H − \|t − s\|^2H | H > 0.5: long phrases; H < 0.5: zigzags |
+| Brownian bridge | Brownian motion pinned at both ends | Wanders off and comes back to its start |
 | Geometric Brownian motion | dS = μS dt + σS dW | Busier when high, calmer when low |
 | Ornstein-Uhlenbeck | dX = κ(θ − X) dt + σ dW | Hovers around a tonal centre |
 | CIR | dX = κ(θ − X) dt + ξ√X dW | Mean-reverting, goes quiet near its floor |
@@ -151,8 +153,9 @@ correlated than their shocks.
 
 Heston, Merton and the CIR variance are written in additive form, so the path can move
 freely in both directions. CIR, Heston variance and SABR use Euler-Maruyama with full
-truncation at zero; Wiener, Brownian motion, GBM and Variance Gamma are simulated
-exactly. The rough Heston variance uses a Volterra Euler scheme on a grid of at most
+truncation at zero; Wiener, Brownian motion, the Brownian bridge, GBM and Variance
+Gamma are simulated exactly. Fractional Brownian motion is simulated exactly with the
+circulant embedding (Davies-Harte) method. The rough Heston variance uses a Volterra Euler scheme on a grid of at most
 3,000 steps, since its cost grows with the square of the number of steps.
 
 ### Rhythm

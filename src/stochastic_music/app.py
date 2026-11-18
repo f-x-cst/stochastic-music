@@ -306,8 +306,8 @@ def main() -> None:
                 value=0.0,
                 step=0.01,
                 help=(
-                    "Positive: the voices move together. Negative: contrary motion. "
-                    f"With {num_voices} voices it cannot go below {lowest:.2f}."
+                    "Positive = voices move together. \n\n"
+                    " Negative = voices move in contrary motion."
                 ),
             )
 

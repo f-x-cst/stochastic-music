@@ -13,8 +13,10 @@ pitch_mapping). They still exist on the classes; the app hides them.
 from dataclasses import dataclass
 
 from .paths import (
+    BrownianBridge,
     BrownianMotion,
     CIRProcess,
+    FractionalBrownianMotion,
     GBMProcess,
     HestonProcess,
     MertonJumpDiffusion,
@@ -75,6 +77,26 @@ _ENTRIES = [
         BrownianMotion,
         (
             Param("mu", "mu (drift)", 0.1, -20.0, 20.0, 0.1),
+            Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05),
+            _X0,
+        ),
+    ),
+    ProcessInfo(
+        "fbm",
+        "Fractional Brownian motion",
+        FractionalBrownianMotion,
+        (
+            Param("hurst", "H (Hurst exponent)", 0.7, 0.05, 0.95, 0.01),
+            Param("sigma", "sigma (scale)", 1.0, 0.05, 10.0, 0.05, audible=False),
+            _X0,
+        ),
+    ),
+    ProcessInfo(
+        "bridge",
+        "Brownian bridge",
+        BrownianBridge,
+        (
+            Param("x_end", "x_end (end value)", 0.0, -20.0, 20.0, 0.1),
             Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05),
             _X0,
         ),

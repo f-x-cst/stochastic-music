@@ -122,3 +122,37 @@ def test_multivoice_simulator_shape():
     sim = sm.MultiVoiceSimulator([sm.WienerProcess(), sm.HestonProcess(), sm.GBMProcess()], 0.3)
     times, values = sim.simulate(T=4, dt=0.01, seed=0)
     assert values.shape == (3, len(times))
+
+
+def test_fbm_with_h_half_is_the_wiener_process():
+    _, fbm = sm.FractionalBrownianMotion(hurst=0.5, sigma=2.0).simulate(T=8, dt=0.01, seed=3)
+    _, wiener = sm.WienerProcess(sigma=2.0).simulate(T=8, dt=0.01, seed=3)
+    np.testing.assert_allclose(fbm, wiener, atol=1e-10)
+
+
+@pytest.mark.parametrize("hurst", [0.2, 0.5, 0.8])
+def test_fbm_increment_statistics(hurst):
+    dt, sigma = 0.01, 1.5
+    _, values = sm.FractionalBrownianMotion(hurst=hurst, sigma=sigma).simulate(
+        T=2000, dt=dt, seed=0
+    )
+    increments = np.diff(values)
+    assert np.var(increments) == pytest.approx(sigma**2 * dt ** (2 * hurst), rel=0.05)
+    # lag-1 correlation of fractional Gaussian noise: 2^(2H-1) - 1
+    lag1 = np.corrcoef(increments[:-1], increments[1:])[0, 1]
+    assert lag1 == pytest.approx(2 ** (2 * hurst - 1) - 1, abs=0.02)
+
+
+def test_brownian_bridge_is_pinned_at_both_ends():
+    for x_end in (0.0, 4.0):
+        bridge = sm.BrownianBridge(sigma=1.0, x0=1.0, x_end=x_end)
+        _, values = bridge.simulate(T=16, dt=0.01, seed=0)
+        assert values[0] == pytest.approx(1.0) and values[-1] == pytest.approx(x_end)
+
+
+def test_brownian_bridge_middle_variance():
+    # Var(B_{T/2}) = sigma^2 * T / 4 for a bridge over [0, T]
+    middles = [
+        sm.BrownianBridge(sigma=1.0).simulate(T=4, dt=0.01, seed=s)[1][200] for s in range(2000)
+    ]
+    assert np.var(middles) == pytest.approx(1.0, rel=0.1)

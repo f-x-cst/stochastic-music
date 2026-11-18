@@ -28,8 +28,10 @@ from .clock import (
     sample_path,
 )
 from .paths import (
+    BrownianBridge,
     BrownianMotion,
     CIRProcess,
+    FractionalBrownianMotion,
     GBMProcess,
     HestonProcess,
     MertonJumpDiffusion,
@@ -58,9 +60,11 @@ __all__ = [
     "ROOT_NOTE_NAMES",
     "SCALES",
     "WAVEFORMS",
+    "BrownianBridge",
     "BrownianMotion",
     "CIRProcess",
     "Clock",
+    "FractionalBrownianMotion",
     "GBMProcess",
     "HawkesClock",
     "HestonProcess",

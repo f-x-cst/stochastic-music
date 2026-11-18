@@ -158,6 +158,100 @@ class BrownianMotion(PathSimulator):
         return _cumulate(self.x0, self.mu * dt + self.sigma * np.sqrt(dt) * shocks)
 
 
+class FractionalBrownianMotion(PathSimulator):
+    """
+    Fractional Brownian motion: a random walk with memory.
+
+    Its increments are correlated, with a strength set by the Hurst
+    exponent H in (0, 1):
+
+        Cov(X_t, X_s) = sigma^2 / 2 * (|t|^(2H) + |s|^(2H) - |t - s|^(2H))
+
+    - H = 0.5 is ordinary Brownian motion (no memory).
+    - H > 0.5: a move tends to be followed by a move in the SAME direction,
+      so the melody draws long, smooth phrases.
+    - H < 0.5: a move tends to be REVERSED by the next one, so the melody
+      zigzags around its current note.
+
+    Simulated exactly with the circulant embedding (Davies-Harte) method:
+    the increments (fractional Gaussian noise) are a filtered version of
+    the supplied shocks, extended with as many fresh draws. At H = 0.5 the
+    filter does nothing and the path equals a WienerProcess driven by the
+    same shocks. Cost: one FFT of twice the number of steps.
+
+    Parameters
+    ----------
+    hurst : float
+        Hurst exponent H, in (0, 1).
+    sigma : float
+        Scale. Only rescales the path.
+    x0 : float
+        Starting value.
+    """
+
+    def __init__(self, hurst: float = 0.7, sigma: float = 1.0, x0: float = 0.0):
+        if not 0.0 < hurst < 1.0:
+            raise ValueError(f"hurst must be in (0, 1), got {hurst}")
+        self.hurst = hurst
+        self.sigma = sigma
+        self.x0 = x0
+
+    def _evolve(self, dt, shocks, rng):
+        n = len(shocks)
+        two_h = 2.0 * self.hurst
+
+        # autocovariance of unit-step fractional Gaussian noise at lags 0..n
+        lags = np.arange(n + 1, dtype=float)
+        autocov = 0.5 * (np.abs(lags - 1) ** two_h - 2 * lags**two_h + (lags + 1) ** two_h)
+
+        # embed it in a circulant matrix of size 2n, whose eigenvalues are an FFT
+        first_row = np.concatenate([autocov, autocov[n - 1 : 0 : -1]])
+        eigenvalues = np.clip(np.fft.fft(first_row).real, 0.0, None)
+
+        # Filtering white noise by sqrt(eigenvalues) gives a stationary series
+        # whose covariance is the circulant matrix; its first n values are
+        # exact fractional Gaussian noise.
+        noise = np.concatenate([shocks, rng.standard_normal(len(first_row) - n)])
+        fgn = np.fft.ifft(np.sqrt(eigenvalues) * np.fft.fft(noise)).real[:n]
+
+        return _cumulate(self.x0, self.sigma * dt**self.hurst * fgn)
+
+
+class BrownianBridge(PathSimulator):
+    """
+    Brownian bridge: a random walk pinned at both ends. It starts at x0 and
+    is forced to finish exactly at x_end at the end of the piece.
+
+        X_t = x0 + sigma * W_t - (t / T) * (sigma * W_T - (x_end - x0))
+
+    With x_end = x0 (the default) the melody wanders off and comes back to
+    where it started, like a phrase that resolves. The last note is read
+    one step before the end, so it lands near the first note rather than
+    exactly on it.
+
+    Exact: built from a Wiener path, then tilted linearly.
+
+    Parameters
+    ----------
+    sigma : float
+        Volatility. Only its ratio to (x_end - x0) is audible.
+    x0 : float
+        Starting value.
+    x_end : float
+        Final value.
+    """
+
+    def __init__(self, sigma: float = 1.0, x0: float = 0.0, x_end: float = 0.0):
+        self.sigma = sigma
+        self.x0 = x0
+        self.x_end = x_end
+
+    def _evolve(self, dt, shocks, rng):
+        walk = np.concatenate([[0.0], np.cumsum(self.sigma * np.sqrt(dt) * shocks)])
+        fraction = np.arange(len(walk)) / len(shocks)  # t / T
+        return self.x0 + walk - fraction * (walk[-1] - (self.x_end - self.x0))
+
+
 class CIRProcess(PathSimulator):
     """
     Cox-Ingersoll-Ross (CIR) mean-reverting process:

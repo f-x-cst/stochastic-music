@@ -1,21 +1,24 @@
 # Stochastic Music
 
-A Python project that turns stochastic processes into music. Pick a process, tune its parameters, and listen to its random path played as a melody.
+This Python project lets you turn stochastic processes into music.
+You basically pick a process, tune its parameters as you please, and listen to the random path being played as a melody.
 
 ![The Stochastic Music app](docs/img/app.png)
 
 ## 🎵 How it works
 
-Every piece goes through the same four steps:
+The same four steps are repeated for every piece:
 
-- a stochastic process is simulated (a random walk, a mean-reverting process, a process with jumps...)
+- a stochastic process is simulated (random walk, mean-reverting, one with jumps, ...)
 - a clock decides when the notes start, which gives the rhythm
 - the path is read at each of those moments
-- each value is turned into a note, inside the pitch range and scale you chose
+- each value is turned into a note which must remain inside the chosen pitch range and scale
 
-The path is stretched to fill the pitch range you chose. So what you hear is the shape of the path, not its size: a parameter that only shifts or rescales the path changes nothing in the sound, and the app hides those parameters.
+Each path is stretched to fill the pitch range you chose. Therefore, what you hear is the **shape** of the path and not its size.
+A parameter that only shifts or rescales the path changes nothing to the musical output. The app hides such parameters.
 
-Every piece is unique. Nothing is seeded, so the same piece can never come out twice. Download it if you like it!
+**Every piece is unique.** 
+Since nothing is seeded, the same piece can never come out twice. If you happen to like a piece, download it!
 
 ## 📦 Required Libraries
 
@@ -26,25 +29,25 @@ Every piece is unique. Nothing is seeded, so the same piece can never come out t
 
 ### Installation
 
-Open a terminal in the project folder (in VS Code: Terminal > New Terminal) and run:
+Open a terminal in the project folder and run:
 
 ```bash
 py -m pip install -e ".[app]"        # Windows
 python3 -m pip install -e ".[app]"   # macOS / Linux
 ```
 
-This installs the project and everything it needs. You only have to do it once.
+This installs the project and everything it needs. It should only be done once.
 
 ## 🚀 How to Run
 
 From the project folder:
 
 ```bash
-py -m streamlit run src/stochastic_music/app.py        # Windows
-python3 -m streamlit run src/stochastic_music/app.py   # macOS / Linux
+py -m streamlit run src/stochastic_music/app.py        # For Windows
+python3 -m streamlit run src/stochastic_music/app.py   # For macOS / Linux
 ```
 
-On Windows you can also just double-click `run_app.bat`.
+On Windows, you can also just double-click `run_app.bat`.
 
 The app opens in your browser. Then:
 
@@ -61,21 +64,21 @@ To stop the app, press `Ctrl+C` in the terminal.
 |---|---|
 | Wiener process | A free random walk |
 | Brownian motion | A random walk with a trend up or down |
-| Fractional Brownian motion | A random walk with memory: long phrases (H > 0.5) or zigzags (H < 0.5) |
+| Fractional Brownian motion | A random walk with memory |
 | Brownian bridge | A random walk that comes back to where it started |
 | Geometric Brownian motion | Moves more when high, less when low |
 | Ornstein-Uhlenbeck | Keeps getting pulled back to a central note |
-| CIR | Pulled back to a central note, and gets quiet near the bottom of its range |
-| Heston | Calm passages alternating with busy ones (optional rough volatility) |
+| CIR | Pulled back to a central note and quiet near the bottom |
+| Heston | Calm passages alternate with busy ones (rough volatility optionnal) |
 | SABR | Like Heston, but the agitation drifts and never settles |
-| Merton jump-diffusion | A random walk with sudden big leaps |
+| Merton jump-diffusion | A random walk with sudden leaps |
 | Variance Gamma | Mostly small moves, with the odd very large one |
 
 ## 🥁 Rhythm
 
 - **Fixed grid** - One note per step (half, quarter, eighth or sixteenth notes)
 - **Poisson** - Rhythm follows a Poisson process
-- **Hawkes** - Rhythm follows a Hawkes process: notes come in bursts
+- **Hawkes** - Rhythm follows a Hawkes process (notes come in bursts)
 - **Driven by a process** - Another stochastic process dictates note lengths
 
 With several voices, you can also correlate them: positive correlation makes the voices move together, negative makes them move in contrary motion.

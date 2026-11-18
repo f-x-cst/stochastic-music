@@ -116,8 +116,8 @@ More examples (several voices, scales, rhythms) are in `examples/quickstart.py`.
 
 - Paths are stretched to fit the pitch range, so only the shape of a process can be heard, not its scale.
 - Parameter ranges are limited to values that give usable music.
-- The audio preview uses a basic built-in synthesizer. For a real sound, open the MIDI file in a DAW.
-- Music has its own rules (harmony, structure, repetition) that a random process knows nothing about. The results are random tunes, not compositions.
+- The audio preview uses a basic built-in synthesizer. For a "real" sound, open the MIDI file in a DAW.
+- Music has rules (harmony, structure, repetition, ...) that a random process knows nothing about. Ways around that is to carefully choose a scale and a proper set up of processes (For instance, CIR for bass & Brownian motion for melody with higher pitch).
 
 ## 🧪 Tests
 
@@ -128,4 +128,5 @@ py -m pytest
 
 ## 📄 License
 
+This project is open source and available under standard licensing terms.
 MIT, see [LICENSE](LICENSE).

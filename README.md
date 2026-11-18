@@ -1,185 +1,128 @@
 # Stochastic Music
 
-[![CI](https://github.com/f-x-cst/stochastic-music/actions/workflows/ci.yml/badge.svg)](https://github.com/f-x-cst/stochastic-music/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License: MIT](https://img.shields.io/badge/license-MIT-green)
+A Python project that turns stochastic processes into music. Pick a process, tune its parameters, and listen to its random path played as a melody.
 
-Simulate a stochastic process and hear its path as a melody. One path, one voice.
+![The Stochastic Music app](docs/img/app.png)
 
-The models are the ones used in quantitative finance (Brownian motion, mean reversion,
-stochastic and rough volatility, jumps). Each one has a recognisable musical character:
-a mean-reverting process hovers around a tonal centre, a jump process breaks stepwise
-motion with sudden leaps, and stochastic volatility alternates calm passages with busy
-ones.
+## 🎵 How it works
 
-![A two-voice piece: a rough Heston melody in eighth notes over a Merton jump-diffusion bass on a Hawkes rhythm](docs/img/example.png)
+Every piece goes through the same four steps:
 
-## Features
+- a stochastic process is simulated (a random walk, a mean-reverting process, a process with jumps...)
+- a clock decides when the notes start, which gives the rhythm
+- the path is read at each of those moments
+- each value is turned into a note, inside the pitch range and scale you chose
 
-- **11 processes**: Wiener, Brownian motion with drift, fractional Brownian motion,
-  Brownian bridge, geometric Brownian motion, Ornstein-Uhlenbeck, CIR, Heston (standard or rough volatility), SABR, Merton
-  jump-diffusion and Variance Gamma.
-- **Several voices at once**, each with its own process, correlated through their
-  driving shocks: voices that move together, or in contrary motion.
-- **Stochastic rhythm**: a fixed grid, Poisson arrivals, a self-exciting Hawkes process
-  (bursts and silences), or a second stochastic process that sets the note lengths.
-- **14 scales and modes** with any root note.
-- **Output** as a multi-track MIDI file for a DAW, or a WAV preview rendered with a
-  small built-in synthesizer (no external sound font needed).
-- **A web app** to explore everything with sliders, listen, and download the result.
+The path is stretched to fill the pitch range you chose. So what you hear is the shape of the path, not its size: a parameter that only shifts or rescales the path changes nothing in the sound, and the app hides those parameters.
 
-## Installation
+Every piece is unique. Nothing is seeded, so the same piece can never come out twice. Download it if you like it!
 
-You need Python 3.10 or later. Open a terminal in the project folder (in VS Code:
-**Terminal → New Terminal**) and run:
+## 📦 Required Libraries
+
+- **numpy** - Simulations and numerical computing
+- **mido** - Writing the MIDI files
+- **streamlit** - The web app
+- **matplotlib** - Plotting the paths
+
+### Installation
+
+Open a terminal in the project folder (in VS Code: Terminal > New Terminal) and run:
 
 ```bash
-git clone https://github.com/f-x-cst/stochastic-music.git
-cd stochastic-music
 py -m pip install -e ".[app]"        # Windows
 python3 -m pip install -e ".[app]"   # macOS / Linux
 ```
 
-Installing without `[app]` gives the library alone (it only needs numpy and mido).
-The `[app]` extra adds Streamlit and matplotlib.
+This installs the project and everything it needs. You only have to do it once.
 
-## The web app
+## 🚀 How to Run
+
+From the project folder:
 
 ```bash
 py -m streamlit run src/stochastic_music/app.py        # Windows
 python3 -m streamlit run src/stochastic_music/app.py   # macOS / Linux
 ```
 
-On Windows you can also double-click `run_app.bat`. Stop the app with `Ctrl+C` in the
-terminal. If the browser shows "Connection error" with a `streamlit run ...` command,
-ignore that command and use the one above.
+On Windows you can also just double-click `run_app.bat`.
 
-The app opens in your browser. Choose the length, tempo, key and number of voices
-in the sidebar. Then set each voice's process, pitch range and rhythm in its tab, and
-press **Generate**. You get an audio player, a plot of the paths and a piano roll, and
-the MIDI and WAV downloads. Every piece is new: the randomness comes from the operating
-system and is not stored, so a piece cannot be generated twice. Download it if you want to keep it.
+The app opens in your browser. Then:
 
-## Using the library
+- set the length, tempo, key and number of voices in the sidebar
+- choose a process and a rhythm for each voice in its tab
+- press **Generate** and listen!
+- download the result as a MIDI file (to open in a DAW) or a WAV file
+
+To stop the app, press `Ctrl+C` in the terminal.
+
+## 🎛️ Processes
+
+| Process | What you'll hear |
+|---|---|
+| Wiener process | A free random walk |
+| Brownian motion | A random walk with a trend up or down |
+| Fractional Brownian motion | A random walk with memory: long phrases (H > 0.5) or zigzags (H < 0.5) |
+| Brownian bridge | A random walk that comes back to where it started |
+| Geometric Brownian motion | Moves more when high, less when low |
+| Ornstein-Uhlenbeck | Keeps getting pulled back to a central note |
+| CIR | Pulled back to a central note, and gets quiet near the bottom of its range |
+| Heston | Calm passages alternating with busy ones (optional rough volatility) |
+| SABR | Like Heston, but the agitation drifts and never settles |
+| Merton jump-diffusion | A random walk with sudden big leaps |
+| Variance Gamma | Mostly small moves, with the odd very large one |
+
+## 🥁 Rhythm
+
+- **Fixed grid** - One note per step (half, quarter, eighth or sixteenth notes)
+- **Poisson** - Rhythm follows a Poisson process
+- **Hawkes** - Rhythm follows a Hawkes process: notes come in bursts
+- **Driven by a process** - Another stochastic process dictates note lengths
+
+With several voices, you can also correlate them: positive correlation makes the voices move together, negative makes them move in contrary motion.
+
+## 🐍 Using it from Python
+
+You don't need the app. A few lines are enough:
 
 ```python
 import stochastic_music as sm
 
-piece = sm.compose(sm.OrnsteinUhlenbeckProcess(kappa=3.0), length=32, bpm=110)
+piece = sm.compose(sm.MertonJumpDiffusion(), length=32, bpm=110)
 piece.write_midi("melody.mid")
 piece.write_wav("melody.wav")
 ```
 
-Every voice can be configured with a `VoiceSpec`:
+More examples (several voices, scales, rhythms) are in `examples/quickstart.py`.
 
-```python
-piece = sm.compose(
-    [
-        sm.VoiceSpec(
-            sm.CIRProcess(kappa=1.0, xi=0.8),
-            clock=sm.UniformClock(2.0),  # half notes
-            mapper=sm.RealizedRangeBinner(36, 50, scale="Dorian", root="D"),
-            name="Bass",
-            program=32,  # General MIDI acoustic bass
-        ),
-        sm.VoiceSpec(
-            sm.MertonJumpDiffusion(lambda_jump=0.8, jump_std=4.0),
-            clock=sm.HawkesClock(base_rate=0.6, excitation=0.75, decay=6.0),
-            mapper=sm.RealizedRangeBinner(62, 86, scale="Dorian", root="D"),
-            name="Lead",
-            max_note_beats=1.0,
-            waveform="saw",
-        ),
-    ],
-    length=64,
-    bpm=120,
-    correlation=0.6,  # one number for every pair, or a full matrix
-)
-```
+## 📁 Project Structure
 
-Each call gives a new piece. `compose` also takes an optional `seed` argument to
-reproduce a piece exactly; the tests use it, the app does not.
+- `src/stochastic_music/` - The code
+  - `paths.py` - The stochastic processes
+  - `clock.py` - The rhythms
+  - `pitch_mapping.py` - From path values to notes, scales and modes
+  - `midi_writer.py` - MIDI export
+  - `synth.py` - The small synthesizer used for the audio preview
+  - `pipeline.py` - Puts all the steps together
+  - `catalog.py` - Parameter ranges shown in the app
+  - `app.py` - The web app
+- `tests/` - Automated tests
+- `examples/` - Example script
+- `run_app.bat` - Starts the app on Windows
 
-`examples/quickstart.py` writes three example pieces to `./outputs/`.
-To draw a piece, use `stochastic_music.plotting.plot_piece(piece)`.
+## ⚠️ Limitations
 
-## How it works
+- Paths are stretched to fit the pitch range, so only the shape of a process can be heard, not its scale.
+- Parameter ranges are limited to values that give usable music.
+- The audio preview uses a basic built-in synthesizer. For a real sound, open the MIDI file in a DAW.
+- Music has its own rules (harmony, structure, repetition) that a random process knows nothing about. The results are random tunes, not compositions.
 
-Four independent layers, each replaceable without touching the others:
-
-| Layer | Module | Responsibility |
-|---|---|---|
-| Paths | `paths.py` | Simulate the raw stochastic process |
-| Clock | `clock.py` | Decide when notes start (the rhythm) |
-| Pitch mapping | `pitch_mapping.py` | Turn path values into MIDI pitches |
-| Output | `midi_writer.py`, `synth.py` | Write the MIDI file, render the audio preview |
-
-`pipeline.compose` wires them together: simulate the paths, ask each voice's clock for
-note onsets, read the path at those onsets, and map the values to pitches. Time is
-measured in beats everywhere, so a mean-reversion speed of 2 means "per beat".
-
-**Pitch mapping.** The values read from a path are stretched to fill the chosen pitch
-range, then cut into equal bins, one per note of the scale. Every scale degree gets the
-same share of the range, whatever the size of the interval to its neighbours.
-
-**What you can hear.** Because each path is rescaled to its own range, a parameter that
-only shifts the path (a starting value) or rescales it (the volatility of a pure Wiener
-process) makes no audible difference. Only parameters that change the path's *shape*
-matter, such as drift against noise, mean reversion, jumps and volatility clustering. The
-app hides the parameters you cannot hear.
-
-**Correlated voices.** Every process is written as a function of its main Brownian
-shocks. For several voices, those shocks are drawn jointly with a Cholesky factor of the
-correlation matrix, so voices of different models can still be correlated. Models with
-randomness of their own (jumps, stochastic volatility, random clocks) end up less
-correlated than their shocks.
-
-### Processes
-
-| Process | Dynamics | How it sounds |
-|---|---|---|
-| Wiener | dX = σ dW | A free random walk |
-| Brownian motion | dX = μ dt + σ dW | A random walk that climbs or falls |
-| Fractional Brownian motion | Gaussian, Cov ∝ t^2H + s^2H − \|t − s\|^2H | H > 0.5: long phrases; H < 0.5: zigzags |
-| Brownian bridge | Brownian motion pinned at both ends | Wanders off and comes back to its start |
-| Geometric Brownian motion | dS = μS dt + σS dW | Busier when high, calmer when low |
-| Ornstein-Uhlenbeck | dX = κ(θ − X) dt + σ dW | Hovers around a tonal centre |
-| CIR | dX = κ(θ − X) dt + ξ√X dW | Mean-reverting, goes quiet near its floor |
-| Heston | dX = √v dW, v is CIR | Calm passages alternating with busy ones |
-| Rough Heston | v driven by a fractional kernel, H < 0.5 | Burstier, more jagged energy |
-| SABR | dF = σF^β dW, dσ = ασ dZ | Energy that drifts and never settles |
-| Merton | Brownian motion + Poisson jumps | Stepwise motion broken by large leaps |
-| Variance Gamma | Brownian motion on a Gamma clock | Mostly small moves, the odd very large one |
-
-Heston, Merton and the CIR variance are written in additive form, so the path can move
-freely in both directions. CIR, Heston variance and SABR use Euler-Maruyama with full
-truncation at zero; Wiener, Brownian motion, the Brownian bridge, GBM and Variance
-Gamma are simulated exactly. Fractional Brownian motion is simulated exactly with the
-circulant embedding (Davies-Harte) method. The rough Heston variance uses a Volterra Euler scheme on a grid of at most
-3,000 steps, since its cost grows with the square of the number of steps.
-
-### Rhythm
-
-| Clock | Behaviour |
-|---|---|
-| `UniformClock(step)` | One note every `step` beats |
-| `PoissonClock(rate, grid)` | Notes at random times, with no memory |
-| `HawkesClock(base_rate, excitation, decay, grid)` | Each note raises the chance of another: bursts and silences |
-| `ProcessClock(process, durations)` | A second process sets the note lengths: high values give short notes |
-
-Random onsets are snapped to a grid (sixteenth notes by default). The Hawkes process is
-simulated exactly with Ogata's thinning algorithm.
-
-## Development
+## 🧪 Tests
 
 ```bash
-pip install -e ".[dev]"
-pytest
-ruff check .
+py -m pip install -e ".[dev]"
+py -m pytest
 ```
 
-Continuous integration runs the linter and the tests on Python 3.10 to 3.13.
+## 📄 License
 
-## License
-
-[MIT](LICENSE)
+MIT, see [LICENSE](LICENSE).

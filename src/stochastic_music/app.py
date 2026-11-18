@@ -94,9 +94,10 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
         ["Fixed grid", "Poisson (random)", "Hawkes (bursts)", "Driven by a process"],
         key=f"{prefix}_clock",
         help=(
-            "Fixed grid: one note per step. Poisson: notes at random. Hawkes: each note "
-            "raises the chance of another, giving bursts and silences. Driven by a process: "
-            "a second path sets the note lengths (high = short notes)."
+            "- Fixed grid: One note per beat\n"
+            "- Poisson: Rhythm follows a Poisson process\n"
+            "- Hawkes: Rhythm follows a Hawkes process\n"
+            "- Driven by a process: Another stochastic process dictates note lengths"
         ),
     )
 
@@ -167,7 +168,7 @@ def voice_controls(index: int, scale: str, root: int) -> sm.VoiceSpec:
     melody, rhythm = st.columns(2, gap="large")
 
     with melody:
-        st.subheader("Melody")
+        st.subheader("Melody", anchor=False)
         process = process_controls(prefix, "Process", "wiener")
         low, high = st.slider(
             "Pitch range (MIDI)",
@@ -175,14 +176,14 @@ def voice_controls(index: int, scale: str, root: int) -> sm.VoiceSpec:
             84,
             (48, 72),
             key=f"{prefix}_range",
-            help="60 is middle C. 12 semitones make an octave.",
+            help="60 is middle C.  \n12 semitones make an octave.",
         )
         st.caption(f"{sm.note_name(low)} to {sm.note_name(high)}")
 
     with rhythm:
-        st.subheader("Rhythm")
+        st.subheader("Rhythm", anchor=False)
         clock, gate, cap = clock_controls(prefix)
-        st.subheader("Sound")
+        st.subheader("Sound", anchor=False)
         left, right = st.columns(2)
         waveform = left.selectbox(
             "Preview waveform",
@@ -245,12 +246,12 @@ def show_result(result) -> None:
             "preview was rendered. The MIDI file is complete."
         )
 
-    left, right, _ = st.columns([1, 1, 3])
-    left.download_button("Download MIDI", result["midi"], f"{result['name']}.mid", "audio/midi")
-    if result["wav"] is not None:
-        right.download_button("Download WAV", result["wav"], f"{result['name']}.wav", "audio/wav")
+    with st.container(horizontal=True):
+        st.download_button("Download MIDI", result["midi"], f"{result['name']}.mid", "audio/midi")
+        if result["wav"] is not None:
+            st.download_button("Download WAV", result["wav"], f"{result['name']}.wav", "audio/wav")
 
-    figure = plot_piece(piece)
+    figure = plot_piece(piece, piano_roll=False)
     st.pyplot(figure)
     plt.close(figure)
 
@@ -262,15 +263,14 @@ def show_result(result) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="Stochastic Music", page_icon="🎼", layout="wide")
-    st.title("Stochastic Music")
-    st.caption("Generate random tunes")
+    st.title("Stochastic Music", anchor=False)
 
     with st.sidebar:
-        st.header("Piece")
+        st.header("Piece", anchor=False)
         length = st.slider("Length (beats)", 4, 1024, 32, 4)
         bpm = st.slider("Tempo (BPM)", 40, 600, 100, 5)
 
-        st.header("Key")
+        st.header("Key", anchor=False)
         scale = st.selectbox(
             "Scale / mode", list(sm.SCALES), index=list(sm.SCALES).index(CHROMATIC)
         )
@@ -282,7 +282,7 @@ def main() -> None:
                 format_func=lambda pitch_class: sm.ROOT_NOTE_NAMES[pitch_class],
             )
 
-        st.header("Voices")
+        st.header("Voices", anchor=False)
         num_voices = st.slider("Number of voices", 1, MAX_VOICES, 1)
         correlation = None
         if num_voices > 1:

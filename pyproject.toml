@@ -27,8 +27,8 @@ dependencies = [
 
 [project.optional-dependencies]
 plot = ["matplotlib>=3.7"]
-app = ["streamlit>=1.46", "matplotlib>=3.7"]
-dev = ["pytest>=7", "ruff>=0.4", "streamlit>=1.46", "matplotlib>=3.7"]
+app = ["streamlit>=1.48", "matplotlib>=3.7"]
+dev = ["pytest>=7", "ruff>=0.4", "streamlit>=1.48", "matplotlib>=3.7"]
 
 [project.scripts]
 stochastic-music = "stochastic_music.launch:main"

@@ -17,22 +17,23 @@ def _thin(times: np.ndarray, values: np.ndarray):
     return times[::stride], values[::stride]
 
 
-def plot_piece(piece: Piece, show_latent: bool = True):
+def plot_piece(piece: Piece, show_latent: bool = True, piano_roll: bool = True):
     """
     Draw a piece: one panel per voice (the raw path and the points read
-    as notes), then a piano roll of all voices.
+    as notes), then, if `piano_roll` is True, a piano roll of all voices.
 
     Returns the matplotlib Figure.
     """
     import matplotlib.pyplot as plt
 
     num_voices = len(piece.voices)
+    ratios = [1.0] * num_voices + ([1.2] if piano_roll else [])
     fig, axes = plt.subplots(
-        num_voices + 1,
+        len(ratios),
         1,
-        figsize=(10, 2.3 * num_voices + 2.8),
+        figsize=(10, 2.3 * num_voices + (2.8 if piano_roll else 0.6)),
         sharex=True,
-        gridspec_kw={"height_ratios": [1.0] * num_voices + [1.2]},
+        gridspec_kw={"height_ratios": ratios},
         squeeze=False,
     )
     axes = axes[:, 0]
@@ -55,6 +56,12 @@ def plot_piece(piece: Piece, show_latent: bool = True):
             ax.set_zorder(twin.get_zorder() + 1)
             ax.patch.set_visible(False)
         ax.spines[["top", "right"]].set_visible(False)
+
+    if not piano_roll:
+        axes[-1].set_xlabel("time (beats)")
+        axes[-1].set_xlim(0, piece.length)
+        fig.tight_layout()
+        return fig
 
     roll = axes[-1]
     for index, voice in enumerate(piece.voices):

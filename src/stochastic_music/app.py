@@ -63,10 +63,6 @@ def process_controls(prefix: str, label: str, default: str) -> sm.PathSimulator:
 
     shown = [param for param in info.params if param.audible]
     if not shown:
-        st.info(
-            "Nothing to tune here. The path is stretched to fit the pitch range, so its "
-            "volatility and starting value cannot be heard. Each Generate still gives a new melody."
-        )
         return info.build()
 
     kwargs = {}

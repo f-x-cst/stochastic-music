@@ -1,12 +1,16 @@
 """
 Stochastic Music web app.
 
-Run it with `stochastic-music` (after `pip install "stochastic-music[app]"`)
-or with `streamlit run src/stochastic_music/app.py` from the repository.
+From the repository folder:
+
+    py -m streamlit run src/stochastic_music/app.py       (Windows)
+    python3 -m streamlit run src/stochastic_music/app.py  (macOS / Linux)
+
+or double-click run_app.bat on Windows.
 """
 
 import math
-import secrets
+from datetime import datetime
 
 import matplotlib.pyplot as plt
 import streamlit as st
@@ -47,7 +51,8 @@ NOTE_CAPS = {"No cap": None, "1 beat": 1.0, "2 beats": 2.0, "4 beats": 4.0}
 def process_controls(prefix: str, label: str, default: str) -> sm.PathSimulator:
     """Process picker plus one control per audible parameter. Returns the process."""
     keys = list(sm.PROCESSES)
-    key = st.selectbox(
+    picker, _ = st.columns([3, 2])
+    key = picker.selectbox(
         label,
         keys,
         index=keys.index(default),
@@ -55,13 +60,12 @@ def process_controls(prefix: str, label: str, default: str) -> sm.PathSimulator:
         key=f"{prefix}_process",
     )
     info = sm.PROCESSES[key]
-    st.caption(info.summary)
 
     shown = [param for param in info.params if param.audible]
     if not shown:
         st.info(
             "Nothing to tune here. The path is stretched to fit the pitch range, so its "
-            "volatility and starting value cannot be heard: only the seed changes the melody."
+            "volatility and starting value cannot be heard. Each Generate still gives a new melody."
         )
         return info.build()
 
@@ -88,7 +92,8 @@ def process_controls(prefix: str, label: str, default: str) -> sm.PathSimulator:
 
 def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
     """Rhythm controls. Returns (clock, gate, maximum note length)."""
-    kind = st.selectbox(
+    picker, _ = st.columns([3, 2])
+    kind = picker.selectbox(
         "Rhythm",
         ["Fixed grid", "Poisson (random)", "Hawkes (bursts)", "Driven by a process"],
         key=f"{prefix}_clock",
@@ -100,7 +105,8 @@ def clock_controls(prefix: str) -> tuple[sm.Clock, float, float | None]:
     )
 
     if kind == "Fixed grid":
-        step = st.selectbox("Step", list(STEPS), index=1, key=f"{prefix}_step")
+        picker, _ = st.columns([3, 2])
+        step = picker.selectbox("Step", list(STEPS), index=1, key=f"{prefix}_step")
         clock = sm.UniformClock(STEPS[step])
     elif kind == "Poisson (random)":
         left, right = st.columns(2)
@@ -207,22 +213,31 @@ def voice_controls(index: int, scale: str, root: int) -> sm.VoiceSpec:
     )
 
 
-def generate(specs, length, bpm, seed, correlation) -> None:
-    """Compose the piece and keep everything needed to display it."""
-    used_seed = seed if seed != 0 else secrets.randbelow(2**31 - 1) + 1
-    piece = sm.compose(specs, length=length, bpm=bpm, seed=used_seed, correlation=correlation)
+def generate(specs, length, bpm, correlation) -> None:
+    """
+    Compose the piece and keep everything needed to display it.
+
+    No seed is passed: numpy then seeds itself from the operating system's
+    entropy source, so every piece is new and cannot be generated again.
+    """
+    piece = sm.compose(specs, length=length, bpm=bpm, correlation=correlation)
 
     audio = None
     if piece.duration_seconds <= MAX_PREVIEW_SECONDS:
         audio = piece.wav_bytes(PREVIEW_SAMPLE_RATE)
-    st.session_state["result"] = {"piece": piece, "midi": piece.midi_bytes(), "wav": audio}
+    st.session_state["result"] = {
+        "piece": piece,
+        "midi": piece.midi_bytes(),
+        "wav": audio,
+        "name": datetime.now().strftime("stochastic_%Y%m%d_%H%M%S"),
+    }
 
 
 def show_result(result) -> None:
     piece = result["piece"]
     notes = sum(len(voice.pitches) for voice in piece.voices)
     st.caption(
-        f"Seed {piece.seed} · {notes} notes · {piece.length:g} beats at {piece.bpm:g} BPM "
+        f"{notes} notes · {piece.length:g} beats at {piece.bpm:g} BPM "
         f"({piece.duration_seconds:.0f} s)"
     )
 
@@ -235,13 +250,9 @@ def show_result(result) -> None:
         )
 
     left, right, _ = st.columns([1, 1, 3])
-    left.download_button(
-        "Download MIDI", result["midi"], f"stochastic_{piece.seed}.mid", "audio/midi"
-    )
+    left.download_button("Download MIDI", result["midi"], f"{result['name']}.mid", "audio/midi")
     if result["wav"] is not None:
-        right.download_button(
-            "Download WAV", result["wav"], f"stochastic_{piece.seed}.wav", "audio/wav"
-        )
+        right.download_button("Download WAV", result["wav"], f"{result['name']}.wav", "audio/wav")
 
     figure = plot_piece(piece)
     st.pyplot(figure)
@@ -256,15 +267,12 @@ def show_result(result) -> None:
 def main() -> None:
     st.set_page_config(page_title="Stochastic Music", page_icon="🎼", layout="wide")
     st.title("Stochastic Music")
-    st.caption("Simulate a stochastic process and hear its path as a melody. One path, one voice.")
+    st.caption("Generate random tunes")
 
     with st.sidebar:
         st.header("Piece")
         length = st.slider("Length (beats)", 4, 1024, 32, 4)
         bpm = st.slider("Tempo (BPM)", 40, 600, 100, 5)
-        seed = st.number_input(
-            "Seed", min_value=0, value=42, step=1, help="0 draws a new random seed every time."
-        )
 
         st.header("Key")
         scale = st.selectbox(
@@ -306,7 +314,7 @@ def main() -> None:
     if clicked:
         try:
             with st.spinner("Simulating..."):
-                generate(specs, float(length), float(bpm), int(seed), correlation)
+                generate(specs, float(length), float(bpm), correlation)
         except ValueError as error:
             st.error(str(error))
 

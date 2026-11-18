@@ -9,7 +9,7 @@ import stochastic_music as sm
 OUT = "outputs"
 
 # 1. One voice, one process, default rhythm (quarter notes, chromatic, C3 to C5).
-piece = sm.compose(sm.OrnsteinUhlenbeckProcess(kappa=3.0), length=32, bpm=110, seed=7)
+piece = sm.compose(sm.OrnsteinUhlenbeckProcess(kappa=3.0), length=32, bpm=110)
 piece.write_midi(f"{OUT}/01_ou.mid")
 piece.write_wav(f"{OUT}/01_ou.wav")
 
@@ -24,7 +24,6 @@ piece = sm.compose(
     ),
     length=64,
     bpm=150,
-    seed=3,
 )
 piece.write_midi(f"{OUT}/02_merton_hawkes.mid")
 piece.write_wav(f"{OUT}/02_merton_hawkes.wav")
@@ -59,7 +58,6 @@ piece = sm.compose(
     ],
     length=64,
     bpm=96,
-    seed=11,
     correlation=0.6,
 )
 piece.write_midi(f"{OUT}/03_three_voices.mid")

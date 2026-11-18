@@ -2,8 +2,7 @@
 Catalog of the available processes and their parameters.
 
 One place describing, for every process, a human-readable label, a
-one-line description of how it sounds, and the sensible range of each
-parameter. The web app builds its controls from this, so adding a
+and the sensible range of each parameter. The web app builds its controls from this, so adding a
 process to the app means adding one entry here.
 
 `audible=False` marks parameters that cannot be heard through
@@ -47,12 +46,11 @@ class Param:
 
 @dataclass(frozen=True)
 class ProcessInfo:
-    """A process class with its label, description and parameters."""
+    """A process class with its label and parameters."""
 
     key: str
     label: str
     cls: type[PathSimulator]
-    summary: str
     params: tuple[Param, ...]
 
     def build(self, **overrides) -> PathSimulator:
@@ -69,14 +67,12 @@ _ENTRIES = [
         "wiener",
         "Wiener process",
         WienerProcess,
-        "A pure random walk. No drift, no memory: the melody wanders freely.",
         (Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05, audible=False), _X0),
     ),
     ProcessInfo(
         "bm",
         "Brownian motion (with drift)",
         BrownianMotion,
-        "A random walk with a trend: the melody climbs or falls while wandering.",
         (
             Param("mu", "mu (drift)", 0.1, -20.0, 20.0, 0.1),
             Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05),
@@ -87,7 +83,6 @@ _ENTRIES = [
         "gbm",
         "Geometric Brownian motion",
         GBMProcess,
-        "Noise proportional to the level: agitated when high, calm when low.",
         (
             Param("mu", "mu (drift)", 0.05, -2.0, 2.0, 0.01),
             Param("sigma", "sigma (volatility)", 0.3, 0.05, 3.0, 0.01),
@@ -98,7 +93,6 @@ _ENTRIES = [
         "ou",
         "Ornstein-Uhlenbeck",
         OrnsteinUhlenbeckProcess,
-        "Pulled back to a centre with constant noise: hovers around a tonal centre.",
         (
             Param("kappa", "kappa (pull speed)", 2.0, 0.05, 50.0, 0.05),
             Param("theta", "theta (centre)", 0.0, -30.0, 30.0, 0.05),
@@ -110,7 +104,6 @@ _ENTRIES = [
         "cir",
         "CIR",
         CIRProcess,
-        "Mean-reverting and never negative: goes quiet and clings near its floor.",
         (
             Param("kappa", "kappa (pull speed)", 2.0, 0.05, 50.0, 0.05),
             Param("theta", "theta (centre)", 1.0, 0.0, 30.0, 0.05),
@@ -122,7 +115,6 @@ _ENTRIES = [
         "heston",
         "Heston (stochastic volatility)",
         HestonProcess,
-        "A walk whose energy has a life of its own: calm stretches, then busy ones.",
         (
             Param("kappa", "kappa (variance pull speed)", 2.0, 0.05, 50.0, 0.05),
             Param("theta", "theta (long-run variance)", 0.2, 0.0, 30.0, 0.05),
@@ -138,7 +130,6 @@ _ENTRIES = [
         "sabr",
         "SABR (stochastic volatility)",
         SABRProcess,
-        "Like Heston, but the energy never settles and can drift away for good.",
         (
             Param("alpha", "alpha (vol of vol)", 0.3, 0.0, 5.0, 0.01),
             Param("beta", "beta (level dependence)", 0.5, 0.0, 1.0, 0.01),
@@ -151,7 +142,6 @@ _ENTRIES = [
         "merton",
         "Merton jump-diffusion",
         MertonJumpDiffusion,
-        "A random walk hit by sudden jumps: stepwise motion broken by big leaps.",
         (
             Param("mu", "mu (drift)", 0.0, -20.0, 20.0, 0.1),
             Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05),
@@ -165,7 +155,6 @@ _ENTRIES = [
         "vg",
         "Variance Gamma",
         VarianceGammaProcess,
-        "A walk on a random clock: mostly small moves, the odd very large one.",
         (
             Param("mu", "mu (drift)", 0.0, -20.0, 20.0, 0.1),
             Param("sigma", "sigma (volatility)", 1.0, 0.05, 10.0, 0.05),

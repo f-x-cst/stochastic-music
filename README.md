@@ -30,32 +30,42 @@ ones.
 
 ## Installation
 
+You need Python 3.10 or later. Open a terminal in the project folder (in VS Code:
+**Terminal → New Terminal**) and run:
+
 ```bash
 git clone https://github.com/f-x-cst/stochastic-music.git
 cd stochastic-music
-pip install -e ".[app]"
+py -m pip install -e ".[app]"        # Windows
+python3 -m pip install -e ".[app]"   # macOS / Linux
 ```
 
-`pip install -e .` installs the library alone (it only needs numpy and mido).
+Installing without `[app]` gives the library alone (it only needs numpy and mido).
 The `[app]` extra adds Streamlit and matplotlib.
 
 ## The web app
 
 ```bash
-stochastic-music
+py -m streamlit run src/stochastic_music/app.py        # Windows
+python3 -m streamlit run src/stochastic_music/app.py   # macOS / Linux
 ```
 
-This opens the app in your browser. Choose the length, tempo, key and number of voices
+On Windows you can also double-click `run_app.bat`. Stop the app with `Ctrl+C` in the
+terminal. If the browser shows "Connection error" with a `streamlit run ...` command,
+ignore that command and use the one above.
+
+The app opens in your browser. Choose the length, tempo, key and number of voices
 in the sidebar. Then set each voice's process, pitch range and rhythm in its tab, and
 press **Generate**. You get an audio player, a plot of the paths and a piano roll, and
-the MIDI and WAV downloads.
+the MIDI and WAV downloads. Every piece is new: the randomness comes from the operating
+system and is not stored, so a piece cannot be generated twice. Download it if you want to keep it.
 
 ## Using the library
 
 ```python
 import stochastic_music as sm
 
-piece = sm.compose(sm.OrnsteinUhlenbeckProcess(kappa=3.0), length=32, bpm=110, seed=7)
+piece = sm.compose(sm.OrnsteinUhlenbeckProcess(kappa=3.0), length=32, bpm=110)
 piece.write_midi("melody.mid")
 piece.write_wav("melody.wav")
 ```
@@ -83,10 +93,12 @@ piece = sm.compose(
     ],
     length=64,
     bpm=120,
-    seed=11,
     correlation=0.6,  # one number for every pair, or a full matrix
 )
 ```
+
+Each call gives a new piece. `compose` also takes an optional `seed` argument to
+reproduce a piece exactly; the tests use it, the app does not.
 
 `examples/quickstart.py` writes three example pieces to `./outputs/`.
 To draw a piece, use `stochastic_music.plotting.plot_piece(piece)`.
